@@ -12,7 +12,32 @@ const Track = ({ audio_features_json, track_json, artists_json, recommendations_
   if (router.isFallback) {
     return <h1>Loading...</h1>;
   }
-  const recommended_tracks = recommendations_json.tracks;
+  
+  const recommended_tracks = recommendations_json ? recommendations_json.tracks : [];
+  if(!artists_json){
+    artists_json = {
+      artists:[]
+    }
+  }
+
+  if(!audio_features_json) {
+    audio_features_json = {
+      tempo: "not found",
+      mode:1,
+      key:0,
+      loudess:0,
+      danceability:0,
+      valence:0,
+      energy:0
+    }
+  }
+
+  if(!track_json) {
+    track_json = {
+      popularity:0
+
+    }
+  }
 
   var key = "";
   var bpm = audio_features_json.tempo + "";
@@ -35,7 +60,6 @@ const Track = ({ audio_features_json, track_json, artists_json, recommendations_
   } else {
     mode = "Minor";
   }
-  // console.log(audio_features_json.key)
   switch (audio_features_json.key) {
     case 0:
       key = "C";
@@ -101,18 +125,18 @@ const Track = ({ audio_features_json, track_json, artists_json, recommendations_
           <div class="flex w-full md:w-1/3">
             <img
               class="rounded-lg w-full"
-              src={track_json.album.images[0].url}
+              src={track_json.album ? track_json.album.images[0].url : ""}
               alt="Picture of the author"
             />
           </div>
           <div class="flex flex-col md:min-h-full justify-center w-full md:w-2/3">
-            <h2 class="flex font-bold text-2xl mb-2">{track_json.name}</h2>
+            <h2 class="flex font-bold text-2xl mb-2">{track_json.name ? track_json.name : ""}</h2>
 
             <div class="flex mb-4 flex-wrap max-h-12 items-start justify-start">
               {artists_json.artists.map((artist) => {
                 return (
                   <div class="flex space-x-2 items-center mt-2 mr-2">
-                    { artist.images[0] &&
+                    {artist.images[0] &&
                       <Image
                         class="rounded-full cursor-pointer"
                         src={artist.images[0].url}
@@ -170,7 +194,7 @@ const Track = ({ audio_features_json, track_json, artists_json, recommendations_
             <h4 class="font-bold text-gray-700 text-sm mr-2">Danceability</h4>
             &bull;
             <p class="text-xs font-medium text-gray-500 ml-2">{Math.round(audio_features_json.danceability * 100) / 10} </p>
-            
+
           </div>
 
           <div classs="rounded-full h-2 w-full bg-white">
@@ -233,11 +257,8 @@ const Track = ({ audio_features_json, track_json, artists_json, recommendations_
         </div>
 
 
-        {!recommended_tracks[0] && <div class="justify-center items-center flex">No data available for this track...</div>}
+        {recommended_tracks.length==0 && <div class="justify-center items-center flex">No data available for this track...</div>}
       </div>
-
-
-
     </Layout>
   );
 };
@@ -248,7 +269,6 @@ export async function getStaticProps({ params }) {
     `https://api.spotify.com/v1/audio-features/${params.id}`,
     { headers: { Authorization: "Bearer " + access_token } }
   );
-  console.log("hello there")
 
   const audio_features_json = await audio_features.json();
 
@@ -259,6 +279,14 @@ export async function getStaticProps({ params }) {
   const track_json = await track.json();
 
   var artist_string = "";
+
+  if(!track_json.artists){
+    return {
+      props: {
+        
+      },
+    };
+  }
 
   track_json.artists.map((artist) => {
     artist_string = artist_string + artist.id + "%2C";
@@ -271,6 +299,8 @@ export async function getStaticProps({ params }) {
       headers: { Authorization: "Bearer " + access_token },
     }
   );
+
+
 
   const artists_json = await artists.json();
 
@@ -288,15 +318,6 @@ export async function getStaticProps({ params }) {
 
   const recommendations_json = await recommendations.json();
 
-  console.log("AUDIO FEATURES")
-  console.log(audio_features_json);
-  console.log("TRACK")
-  console.log(track_json);
-  console.log("ARTIST")
-  console.log(artists_json);
-  console.log("RECOMMENDATIONS")
-  console.log(recommendations_json);
-
   // By returning { props: { posts } }, the Blog component
   // will receive `posts` as a prop at build time
   return {
@@ -310,7 +331,7 @@ export async function getStaticProps({ params }) {
 }
 
 export async function getStaticPaths() {
-  var arr = ["1", "2"];
+  var arr = ["1"];
   // Get the paths we want to pre-render based on posts
   const paths = arr.map((track) => ({
     params: { id: track },

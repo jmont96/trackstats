@@ -8,9 +8,9 @@ import Tracklist from "../components/tracklist";
 
 
 function Index({ returnable }) {
-  useEffect(() => {
-    console.log(returnable);
-  }, []);
+  // useEffect(() => {
+  //  
+  // }, []);
 
   return (
     <Layout>

@@ -36,7 +36,6 @@ export async function getStaticProps({ params }) {
   
     const releases_json = await search_results.json();
     const query_result = releases_json;
-    console.log(query_result);
     const search_string = params.keyword;
     
     // By returning { props: { posts } }, the Blog component
@@ -49,12 +48,12 @@ export async function getStaticProps({ params }) {
     };
 }
 
-export async function getStaticPaths({params}) {
+export async function getStaticPaths() {
   var arr = ["1"];
 
   // Get the paths we want to pre-render based on posts
   const paths = arr.map((track) => ({
-    params: { keyword: "1" },
+    params: { keyword: track },
   }));
 
   // We'll pre-render only these paths at build time.
